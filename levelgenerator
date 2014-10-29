@@ -1,0 +1,196 @@
+from random import *
+#
+#   Program that generates level values for a rouge-like game
+#   Author: James Hodge
+#
+
+def main():
+    print("GAME START")
+    #set/print initial values
+    lvl = 1
+    roomnum = 14
+    eHP = 10
+    eDmg = 4
+    pHP = 50
+    pDmg = 5
+    loot = genLoot(lvl,roomnum)
+    prevOdds = 91
+    #loot = genloot(lvl)
+    #begin loop
+    prevOdds = printInfo(lvl,roomnum,eHP,eDmg,pHP,pDmg,loot,prevOdds)
+    cont = str(input("Continue? (y/n): "))
+    if(cont == "y"):
+        alive = True
+    else:
+        alive = False
+    while(alive):
+        lvl += 1
+        roomnum = roomnum + randrange(0,4)
+        if(roomnum > 50):
+            roomnum = 50
+        eHP = 5 + lvl*5
+        eDmg = lvl*4
+        pHP = genHP(pHP,loot)
+        pDmg = genDmg(pDmg,loot)
+        loot = genLoot(lvl,roomnum)
+        prevOdds = printInfo(lvl,roomnum,eHP,eDmg,pHP,pDmg,loot,prevOdds)
+        cont = str(input("Continue? (y/n): "))
+        if(cont == "y"):
+            alive = True
+        else:
+            alive = False
+
+def printInfo(lvl,roomnum,eHP,eDmg,pHP,pDmg,loot,prevOdds):
+    print("--------------------")
+    print("level: ", lvl)
+    print("--------------------")
+    print("rooms: ", roomnum)
+    print("enemy health: ", eHP)
+    print("enemy damage: ", eDmg)
+    print("player health: ", pHP)
+    print("player damage: ", pDmg)
+    print("loot: ")
+    for item in loot:
+        print(item)
+    difference = ((pHP - eDmg) - (eHP - pDmg))
+    temp = difference + 50
+    if(temp > 100):
+        odds = 100
+    elif(temp < 0):
+        odds = 0
+    else:
+        odds = temp
+    oddsin = ""
+    if(odds > prevOdds):
+        oddsin = "+"
+        odddif = odds - prevOdds
+    elif(odds < prevOdds):
+        oddsin = "-"
+        odddif = prevOdds - odds
+    else:
+        odddif = 0
+    print("odds: ", odds, "%", " (", oddsin, odddif, "%)",sep='')
+    prevOdds = odds
+    return prevOdds
+
+def genHP(pHP, loot):
+    newHP = 50
+    upgrade = 0
+    for item in loot:
+        if(item[0][0] == 'H'):
+            if(item[1] > upgrade):
+               upgrade = item[1]
+    newHP += upgrade
+    if(newHP > pHP):
+        return newHP
+    else:
+        return pHP
+
+def genDmg(pDmg, loot):
+    newDmg = 5
+    upgrade = 0
+    for item in loot:
+        if(item[0][0] == 'D'):
+            if(item[1] > upgrade):
+               upgrade = item[1]
+    newDmg += upgrade
+    if(newDmg > pDmg):
+        return newDmg
+    else:
+        return pDmg
+
+def genLoot(lvl, roomnum):
+    itemnum = 2
+    if(roomnum > 25):
+        itemnum = 3
+    if(roomnum > 40):
+        itemnum = 4
+    x = 0
+    loot = []
+    while(x != itemnum):
+        y = randrange(0,5)
+        rareval = randrange(0,100)
+        if(rareval < 70):
+            rare = "Common"
+        elif(rareval < 95):
+            rare = "Rare!"
+        else:
+            rare = "LEGONDARY!"
+        if(y == 0):
+            item = ["Cosmetic", rare]
+        elif(y == 1 or y == 2):
+            sign = randrange(0,1)
+            if(sign == 0):
+                val = lvl*4 - randrange(0,6) + round(rareval/10)
+            else:
+                val = lvl*4 + randrange(0,6) + round(rareval/10)
+            item = ["DmgUp",val, rare]
+        else:
+            sign = randrange(0,1)
+            if(sign == 0):
+                val = lvl*4 - randrange(0,6) + round(rareval/10)
+            else:
+                val = lvl*4 + randrange(0,6) + round(rareval/10)
+            item = ["HPUp",val,rare]
+        lootname = genLootName(item[0],rare)
+        item += [lootname]
+        loot += [item]
+        x += 1
+    return loot
+
+def genLootName(item,rare):
+    lootname = ""
+    cosCom = ["Scarf","Cowboy Hat","Boots","Pink hair Dye","BackPack","Cat","Dog","Baseball Cap","Silver Watch","Gloves"]
+    cosRar = ["Top Hat","Lynx","Wolf","Green Morph Suit","Thick Rimmed Glasses","Rose","Record"]
+    cosLeg = ["V Wing Guitar","Unicorn","Liger","VR Headset","Skeleton Mask"]
+    DmgEleCom = ["Earth","Air","Water","Fire","Ice","Heart"]
+    DmgEleRar = ["Toxic","Light","Dark","Glow"]
+    DmgEleLeg = ["Void","Plasma",]
+    DmgWep = ["Sword","Bow","Dagger","Mace","Spear","Staff","Wand"]
+    DmgChar = ["Bravery","Strength","Humble Bragging","Wonder","Terror","Power","Destiny"]
+    HPCom = ["Leather Armor","Clothing","Robe","Onesy","Padding"]
+    HPRar = ["Iron Armor","Super Suit","Cloak"]
+    HPLeg = ["Diamond armor","Gold Armor",]
+    HPChar = ["Swiftness","Invisibility","Wumbo","Strength","Power","Spikes","Mystery","Trancendence"]
+    if(item == "Cosmetic"):
+        if(rare == "Common"):
+            ran = randrange(0,10)
+            lootname += cosCom[ran]
+        elif(rare == "Rare!"):
+            ran = randrange(0,7)
+            lootname += cosRar[ran]
+        else:
+            ran = randrange(0,5)
+            lootname += cosLeg[ran]
+    elif(item == "DmgUp"):
+        if(rare == "Common"):
+            ran = randrange(0,6)
+            lootname += DmgEleCom[ran]
+        elif(rare == "Rare!"):
+            ran = randrange(0,4)
+            lootname += DmgEleRar[ran]
+        else:
+            ran = randrange(0,2)
+            lootname += DmgEleLeg[ran]
+        lootname += " "
+        ran = randrange(0,7)
+        lootname += DmgWep[ran]
+        lootname += " of "
+        ran = randrange(0,7)
+        lootname += DmgChar[ran]
+    else:
+        if(rare == "Common"):
+            ran = randrange(0,5)
+            lootname += HPCom[ran]
+        elif(rare == "Rare!"):
+            ran = randrange(0,3)
+            lootname += HPRar[ran]
+        else:
+            ran = randrange(0,2)
+            lootname += HPLeg[ran]
+        lootname += " of "
+        ran = randrange(0,8)
+        lootname += HPChar[ran]
+    return lootname
+
+main()
